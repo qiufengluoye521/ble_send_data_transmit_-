@@ -1,0 +1,156 @@
+ close all;
+clear all;
+clc;
+
+%a = xlsread('lihongbo_run2.xlsx');
+string_name = 'get_data20170819175228';
+fid = fopen([string_name,'.txt']);
+read_txt = textscan(fid, '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s','EmptyValue', -Inf);
+fclose(fid);
+
+
+tmp_1 = read_txt{1};        % time
+tmp_2 = read_txt{2};        % x1
+tmp_3 = read_txt{3};        % y1
+tmp_4 = read_txt{4};        % z1
+tmp_5 = read_txt{5};        % x2
+tmp_6 = read_txt{6};        % y2
+tmp_7 = read_txt{7};        % z2
+tmp_8 = read_txt{8};        % x3
+tmp_9 = read_txt{9};        % y3
+tmp_10 = read_txt{10};      % z3
+tmp_11 = read_txt{11};      % x4
+tmp_12 = read_txt{12};      % y4
+tmp_13 = read_txt{13};      % z4
+tmp_14 = read_txt{14};      % ppg1_high
+tmp_15 = read_txt{15};      % ppg1_low
+tmp_16 = read_txt{16};      % ppg2_high
+tmp_17 = read_txt{17};      % ppg2_low
+tmp_18 = read_txt{18};
+tmp_19 = read_txt{19};
+tmp_20 = read_txt{20};
+tmp_21 = read_txt{21};      % serial num
+
+
+
+tmp = [tmp_1,tmp_2,tmp_3,tmp_4,tmp_5,tmp_6,tmp_7,tmp_8,tmp_9,tmp_10, ...
+    tmp_11,tmp_12,tmp_13,tmp_14,tmp_15,tmp_16,tmp_17,tmp_18,tmp_19,tmp_20,tmp_21];
+
+row_num = find(~strcmp(tmp_21,''));
+tmp_valid = tmp(row_num,:);
+
+% x1 
+gsensor_x = [tmp_valid(:,2),tmp_valid(:,5),tmp_valid(:,8),tmp_valid(:,11)];
+gsensor_y = [tmp_valid(:,3),tmp_valid(:,6),tmp_valid(:,9),tmp_valid(:,12)];
+gsensor_z = [tmp_valid(:,4),tmp_valid(:,7),tmp_valid(:,10),tmp_valid(:,13)];
+
+gsensor_x_
+
+% 手环和心率带的hr值
+hr_polar_str = tmp_valid(:,2);
+hr_polar_shouhuan = tmp_valid(:,3);
+
+hr_polar_data = hex2dec(hr_polar_str);
+hr_shouhuan_data = hex2dec(hr_polar_shouhuan);
+
+% ppg rawdata
+ppg_raw_str1 = tmp_valid(:,4:5);
+ppg_raw_str2 = tmp_valid(:,6:7);
+% ppg_raw_str3 = tmp_valid(:,8:9);
+
+ppg_raw_str1_connect = strcat(ppg_raw_str1(:,1),ppg_raw_str1(:,2));
+ppg_raw_str2_connect = strcat(ppg_raw_str2(:,1),ppg_raw_str2(:,2));
+% ppg_raw_str3_connect = strcat(ppg_raw_str3(:,1),ppg_raw_str3(:,2));
+
+ppg_raw_str_connect = [ppg_raw_str1_connect,ppg_raw_str2_connect];%,ppg_raw_str3_connect];
+len_str_con = length(ppg_raw_str_connect(:,1));
+ppg_raw_str_connect_reshape = reshape(ppg_raw_str_connect',len_str_con*2,1);
+
+ppg_raw_value =  hex2dec(ppg_raw_str_connect_reshape);
+
+%gsensor rawdata
+gsensor_raw_x_str0 = tmp_valid(:,11);
+gsensor_raw_y_str0 = tmp_valid(:,12);
+gsensor_raw_z_str0 = tmp_valid(:,13);
+
+gsensor_raw_x_str1 = tmp_valid(:,14);
+gsensor_raw_y_str1 = tmp_valid(:,15);
+gsensor_raw_z_str1 = tmp_valid(:,16);
+
+gsensor_raw_x_str2 = tmp_valid(:,17);
+gsensor_raw_y_str2 = tmp_valid(:,18);
+gsensor_raw_z_str2 = tmp_valid(:,19);
+
+gsensor_raw_x_str3 = tmp_valid(:,20);
+gsensor_raw_y_str3 = tmp_valid(:,21);
+gsensor_raw_z_str3 = tmp_valid(:,22);
+
+gsensor_raw_x_str = [gsensor_raw_x_str0,gsensor_raw_x_str1,gsensor_raw_x_str2,gsensor_raw_x_str3];
+gsensor_raw_y_str = [gsensor_raw_y_str0,gsensor_raw_y_str1,gsensor_raw_y_str2,gsensor_raw_y_str3];
+gsensor_raw_z_str = [gsensor_raw_z_str0,gsensor_raw_z_str1,gsensor_raw_z_str2,gsensor_raw_z_str3];
+
+len_gsensor_raw = length(gsensor_raw_x_str(:,1));
+gsensor_raw_x_str_reshape = reshape(gsensor_raw_x_str',len_gsensor_raw*4,1);
+gsensor_raw_y_str_reshape = reshape(gsensor_raw_y_str',len_gsensor_raw*4,1);
+gsensor_raw_z_str_reshape = reshape(gsensor_raw_z_str',len_gsensor_raw*4,1);
+
+gsensor_data_x = hex2dec(gsensor_raw_x_str_reshape);
+gsensor_data_y = hex2dec(gsensor_raw_y_str_reshape);
+gsensor_data_z = hex2dec(gsensor_raw_z_str_reshape);
+
+
+fft_time = ppg_raw_value;
+
+fft_time_num = length(fft_time);
+t_fft_time = 1:1:fft_time_num;
+
+figure;
+plot(t_fft_time,fft_time,'.-');
+hold on;
+
+len_gsensor_data = length(gsensor_data_x);
+t_gsensor = 1:1:len_gsensor_data;
+g_sensor_sector = sqrt(gsensor_data_x .* gsensor_data_x + gsensor_data_y .* gsensor_data_y + gsensor_data_z .* gsensor_data_z);
+g_sensor_sector = g_sensor_sector';
+
+figure;
+plot(t_gsensor,gsensor_data_x,'r.-');
+hold on;
+plot(t_gsensor,gsensor_data_y,'g.-');
+hold on;
+plot(t_gsensor,gsensor_data_z,'b.-');
+hold on;
+plot(t_gsensor,g_sensor_sector,'k.-');
+hold on;
+
+figure ;
+plot(hr_polar_data,'b');
+hold on;
+plot(hr_shouhuan_data,'r');
+
+% 奇数点去一个值
+if mod(fft_time_num,2) ~= 0
+    fft_time_num = fft_time_num -1;
+    fft_time = fft_time(1:end-1);    
+end
+if mod(len_gsensor_data,2) ~= 0
+    len_gsensor_data = len_gsensor_data -1;
+    g_sensor_sector = g_sensor_sector(1:end-1);    
+end
+
+fft_time_reshape = reshape(fft_time,1,fft_time_num/1);
+fft_time_reshape = fft_time_reshape';
+g_sensor_sector_reshape = reshape(g_sensor_sector,2,len_gsensor_data/2);
+g_sensor_sector_reshape = g_sensor_sector_reshape';
+g_sensor_sector_reshape_int = round(g_sensor_sector_reshape);
+
+out_data = [fft_time_reshape(:,1),g_sensor_sector_reshape_int(:,1)];
+dlmwrite(['test_',string_name,'.txt'], out_data,'delimiter','\t'); 
+
+hr_out_data = [hr_polar_data,hr_shouhuan_data];
+dlmwrite(['hr_data_',string_name,'.txt'], hr_out_data,'delimiter','\t'); 
+
+%plot(t_fft_time,fft_time);
+%hold on;
+
+
